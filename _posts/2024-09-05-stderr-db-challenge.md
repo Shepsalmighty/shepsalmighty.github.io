@@ -24,20 +24,20 @@ and then check what's in the db with .dump
 
 ```sqlite3 stderr_db .dump | head 10``` - which gives us this - IMPORTANT NOTE if the db was 1 millions lines .dump would print all of the data to the terminal so pipe it to head 10 to only show the first 10 lines:
                                                                                           
-PRAGMA foreign_keys=OFF;
-BEGIN TRANSACTION;
-CREATE TABLE codes ( number INTEGER NOT NULL , base64 TEXT );
-INSERT INTO codes VALUES(3,'IyMjICMjICAjICAgIyAgICMgIyAgICAgIyAjICMgIyAjIyAgIyAgICMgIwo=');
-INSERT INTO codes VALUES(2,'IyAjICMgICAjICAgIyAgICMgIyAgICAgIyAjICMgIyAjICMgIyAgICMgIwo=');
-INSERT INTO codes VALUES(1,'IyAjICMjIyAjICAgIyAgICAjICAgICAgIyAjICAjICAjIyAgIyAgICMjIAo=');
-INSERT INTO codes VALUES(5,'IyAjICMjIyAjIyMgIyMjICAjICAgICAgIyAjICAjICAjICMgIyMjICMjIAo=');
-INSERT INTO codes VALUES(4,'IyAjICMgICAjICAgIyAgICMgIyAgICAgIyMjICMgIyAjICMgIyAgICMgIwo=');
-COMMIT;
+>PRAGMA foreign_keys=OFF;
+>BEGIN TRANSACTION;
+>CREATE TABLE codes ( number INTEGER NOT NULL , base64 TEXT );
+>INSERT INTO codes VALUES(3,'IyMjICMjICAjICAgIyAgICMgIyAgICAgIyAjICMgIyAjIyAgIyAgICMgIwo=');
+>INSERT INTO codes VALUES(2,'IyAjICMgICAjICAgIyAgICMgIyAgICAgIyAjICMgIyAjICMgIyAgICMgIwo=');
+>INSERT INTO codes VALUES(1,'IyAjICMjIyAjICAgIyAgICAjICAgICAgIyAjICAjICAjIyAgIyAgICMjIAo=');
+>INSERT INTO codes VALUES(5,'IyAjICMjIyAjIyMgIyMjICAjICAgICAgIyAjICAjICAjICMgIyMjICMjIAo=');
+>INSERT INTO codes VALUES(4,'IyAjICMgICAjICAgIyAgICMgIyAgICAgIyMjICMgIyAjICMgIyAgICMgIwo=');
+>COMMIT;
 
 
 after many reworkings our sql query and piping looks thusly:
 
-sqlite3 stderr_db ```SELECT base64 FROM codes ORDER BY number  asc' | base64 -d```
+```sqlite3 stderr_db SELECT base64 FROM codes ORDER BY number  asc' | base64 -d```
 
 
 SUCCESS!!!
