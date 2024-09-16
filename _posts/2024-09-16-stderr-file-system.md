@@ -1,4 +1,4 @@
-#STDERR File System
+STDERR File System
 
 https://github.com/TrshPuppy/stderr-challenges
 
@@ -37,7 +37,7 @@ So, lets fix lost+found, using fsck.
 ```man fsck``` tells us all the options. Given that we know the file system was of type ext2 using the -t flag seems like a good idea here 
 ```fsck -t ext2 lost+found```
 
-###defeat... 
+defeat... 
 it doesn't work... fsck won't work on a mounted filesystem... So let's unmount using ```umount``` and run fsck on the filesystem. e2fsck is designed for ext type filesystem so we'll use that 
 ```sudo umount /absolute/path/to/mountpoint```
 ```e2fsck -vfy trshpuppy``` (flags vyf = -v verbose -f force -y yes to all)
@@ -45,8 +45,8 @@ it doesn't work... fsck won't work on a mounted filesystem... So let's unmount u
 ```md5sum trshpuppy``` - checking if the file changed - we get a different readout from at the start. Success!
 ```sudo mount -r trshpuppy mountpoint```
 
-we now have a recovered file "#13" and we can check the files using "sudo tree -R" 
-```file #13``` shows an ascii text - presumably the password for our encrypted secret.aes256 file
+we now have a recovered file "#13" and we can check the files using ```sudo tree -R 
+file #13``` shows an ascii text - presumably the password for our encrypted secret.aes256 file
 >jg2VxRTX
 
 ```openssl aes-256-cbc -pbkdf2 -d -pass file:Downloads/mountpoint/lost+found/#13 -in``` ```Downloads/mountpoint/secret.aes256 -out Downloads/decrypted.file -v ```
