@@ -12,13 +12,16 @@ shows 2 "full size" files (sda/sdd) and 2 much smaller ones and running file on 
 
 let's hexdump them and have a look, we'll use head to limit the output to the terminal
 
-``` hd sdb | head -5```
->00000000  41 20 52 41 49 44 2d 35  20 77 69 74 68 20 4e 20  |A RAID-5 with N |
->00000010  6e 65 20 70 61 72 69 74  79 20 62 6c 6f 63 6b 20  |ne parity block |
->00000020  00 04 00 49 07 0d 52 0b  1c 0a 4d 4b 74 01 16 00  |...I..R...MKt...|
->00000030  89 f0 b9 29 a5 b2 84 a7  60 9c 97 8c e6 b9 80 60  |...)....`......`|
->00000040  69 6e 20 74 68 65 20 73  74 72 69 70 65 2e 0a 0a  |in the stripe...|
-
+```bash
+ hd sdb | head -5
+```
+```bash
+00000000  41 20 52 41 49 44 2d 35  20 77 69 74 68 20 4e 20  |A RAID-5 with N |
+00000010  6e 65 20 70 61 72 69 74  79 20 62 6c 6f 63 6b 20  |ne parity block |
+00000020  00 04 00 49 07 0d 52 0b  1c 0a 4d 4b 74 01 16 00  |...I..R...MKt...|
+00000030  89 f0 b9 29 a5 b2 84 a7  60 9c 97 8c e6 b9 80 60  |...)....`......`|
+00000040  69 6e 20 74 68 65 20 73  74 72 69 70 65 2e 0a 0a  |in the stripe...|
+```
 order of blocks seems to be sdb-sdc-sda-sdd
 
 we saw something like this in the previous challenge so i'm going to assume this is another RAID-5 system with some data to recover
@@ -35,7 +38,8 @@ NOTE: the full, finished python program/project can be found at the following li
 that went on to get to the finished project, so i'm including mine
 https://github.com/Shepsalmighty/raid_stderr_challenges
 
-```def read_raid6():
+```python
+def read_raid6():
     paths = ["/home/sheps/PycharmProjects/stderr_challenges/RAID6/part_1/sda",
              "/home/sheps/PycharmProjects/stderr_challenges/RAID6/part_1/sdb",
              "/home/sheps/PycharmProjects/stderr_challenges/RAID6/part_1/sdc",
@@ -61,7 +65,8 @@ https://github.com/Shepsalmighty/raid_stderr_challenges
                 print((sdc + sdd).decode("utf-8"), end="")
             count += 1
 
-read_raid6()```
+read_raid6()
+```
 
 this prints all the readable data that's remaining, it's an explanation of RAID6 and how to recover, it also includes a link:
 https://mirrors.edge.kernel.org/pub/linux/kernel/people/hpa/raid6.pdf
@@ -70,7 +75,7 @@ So now we know it's a failed RAID6 (if it was a RAID5 we were cooked from the st
 
 then we need to find which blocks are the P and Q for their respective byte blocks
 
-```
+```python
 def read_raid6():
     paths = ["/home/sheps/PycharmProjects/stderr_challenges/RAID6/part_1/sda",
              "/home/sheps/PycharmProjects/stderr_challenges/RAID6/part_1/sdb",
@@ -218,7 +223,7 @@ in this example the P syndrome is known (from the above work) so we check that t
 
 Next if we're missing both data blocks, things get a bit trickier, we need to use Galois feild maths to recover our D2 data block, and then from there we can recover D1 using D2 ^ P_block (all code in github repo including functions called here but not shown)
 
-```
+```python
 def recover_all(block1, block2, P_block, Q_block):
     #P_recovery
     if len(block1) > 0 and len(block2) > 0:
@@ -260,7 +265,7 @@ def recover_all(block1, block2, P_block, Q_block):
             else:
                 print("PANIC!!!!")
         return recovered_block1, recovered_block2
-			```
+```
 			
 ### SUCCESS!!!
 
@@ -268,31 +273,37 @@ we finished part 1 of the challenge, we recovered our lost data, and it turns ou
 
 reading the file, there are the instructions, a long (what seems to be) base64 encoded second stage of the puzzle and some trash (which we can look at later) at the end. We'll filter the instructions and trash out using awk and put the base64 into another file 
 
-```awk 'NR>=105 && NR<=46092 { print }' < stderr_raid6_recovered > stderr_raid6_base64
+```bash
+awk 'NR>=105 && NR<=46092 { print }' < stderr_raid6_recovered > stderr_raid6_base64
 ```
 then
 
-```cat stderr_raid6_base64 | base64 -d | file -```
+```bash
+cat stderr_raid6_base64 | base64 -d | file -
 
->/dev/stdin: gzip compressed data, from Unix
-
+/dev/stdin: gzip compressed data, from Unix
+```
 next step 
-```cat stderr_raid6_base64 | base64 -d | gunzip | file -```
->/dev/stdin: POSIX tar archive (GNU)
-
+```bash
+cat stderr_raid6_base64 | base64 -d | gunzip | file -
+/dev/stdin: POSIX tar archive (GNU)
+```
 so let's gunzip it:
-```cat stderr_raid6_base64 | base64 -d | gunzip | tar -vtf -```
+```bash
+cat stderr_raid6_base64 | base64 -d | gunzip | tar -vtf -
+```
 
 this gives us a rather worrying:
-> -rw-r--r-- root/root      1615 2024-04-20 06:32 part_2/README
->-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sda.sector000
->-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdc.sector000
->-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdd.sector000
->-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sde.sector000
->-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdg.sector000
->-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdh.sector000
-> -rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sda.sector001
-
+```bash
+-rw-r--r-- root/root      1615 2024-04-20 06:32 part_2/README
+-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sda.sector000
+-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdc.sector000
+-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdd.sector000
+-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sde.sector000
+-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdg.sector000
+-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sdh.sector000
+-rw-r--r-- root/root       512 2024-04-20 06:37 part_2/sectors/sda.sector001
+```
 
 Of course there's a part 2... Thanks stderr...
 
